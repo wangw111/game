@@ -1,0 +1,9 @@
+- 基于 streamlit agno 生成一个 游戏开发agent
+- agent 是一个游戏开发专家
+- anget 精通少儿游戏
+- agent 精通数字游戏
+- agent 精通汉字游戏
+- agent 精通英语游戏
+- agent 可以帮助根据指定的动作逻辑生成游戏场景
+- agent 可以帮助学习数字加减乘除 学习英语汉字
+- agent 可以对接openai qwen claude
