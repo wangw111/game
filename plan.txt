@@ -7,3 +7,6 @@
 - agent 可以帮助根据指定的动作逻辑生成游戏场景
 - agent 可以帮助学习数字加减乘除 学习英语汉字
 - agent 可以对接openai qwen claude
+- openai 支持 OPENAI_API_KEY OPENAI_BASE_URL OPENAI_MODEL 参数
+- Claude 支持 ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN 参数
+- 设置 git 忽略pyc等中间编译文件

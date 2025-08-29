@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>趣味加法游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .game-header {
+            margin-bottom: 30px;
+        }
+
+        .game-title {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .question-container {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 3px solid #667eea;
+        }
+
+        .question {
+            font-size: 2em;
+            color: #495057;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            padding: 20px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 10px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .option-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .option-btn:active {
+            transform: translateY(0);
+        }
+
+        .option-btn.correct {
+            background: #28a745;
+            animation: correct-pulse 0.6s ease;
+        }
+
+        .option-btn.incorrect {
+            background: #dc3545;
+            animation: incorrect-shake 0.6s ease;
+        }
+
+        @keyframes correct-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes incorrect-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .hint-btn {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .hint-btn:hover {
+            background: #e0a800;
+        }
+
+        .hint-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            background: #28a745;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .score-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .lives-display {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .life {
+            color: #dc3545;
+            margin: 0 5px;
+        }
+
+        .game-over {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 3px solid #667eea;
+        }
+
+        .game-over h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .final-score {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: #28a745;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            background: #218838;
+        }
+
+        .hint-display {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .timer {
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            .game-title {
+                font-size: 2em;
+            }
+            
+            .question {
+                font-size: 1.5em;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🎮 趣味加法游戏</h1>
+            <div class="game-info">
+                <div class="info-item">
+                    <span>👶 3-6岁</span>
+                </div>
+                <div class="info-item">
+                    <span>📊 简单</span>
+                </div>
+                <div class="info-item">
+                    <span>⏰ 5分钟</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-content" id="gameContent">
+            <div class="score-display">
+                🏆 得分: <span id="score">0</span>
+            </div>
+            
+            <div class="lives-display">
+                ❤️ 生命值: <span id="lives"></span>
+            </div>
+
+            <div class="timer">
+                ⏱️ 剩余时间: <span id="timer">05:00</span>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="hint-display" id="hintDisplay"></div>
+
+            <div class="question-container">
+                <div class="question" id="question">4 + 4 = ?</div>
+                <div class="options-grid" id="optionsGrid">
+                    <button class="option-btn" onclick="checkAnswer(11)">11</button>
+                    <button class="option-btn" onclick="checkAnswer(18)">18</button>
+                    <button class="option-btn" onclick="checkAnswer(8)">8</button>
+                    <button class="option-btn" onclick="checkAnswer(13)">13</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn hint-btn" id="hintBtn" onclick="useHint()">
+                    💡 提示 (<span id="hintCount">3</span>)
+                </button>
+            </div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverTitle">游戏结束！</h2>
+            <div class="final-score" id="finalScore"></div>
+            <div id="gameOverMessage"></div>
+            <button class="restart-btn" onclick="restartGame()">🔄 重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据
+        const gameData = {
+            "title": "趣味加法游戏",
+            "type": "math",
+            "operation": "加法",
+            "difficulty": "简单",
+            "age_group": "3-6岁",
+            "problems": [
+                {
+                    "type": "addition",
+                    "question": "4 + 4 = ?",
+                    "answer": 8,
+                    "options": [11, 18, 8, 13]
+                },
+                {
+                    "type": "addition",
+                    "question": "7 + 9 = ?",
+                    "answer": 16,
+                    "options": [13, 16, 14, 21]
+                },
+                {
+                    "type": "addition",
+                    "question": "10 + 10 = ?",
+                    "answer": 20,
+                    "options": [20, 18, 19, 23]
+                },
+                {
+                    "type": "addition",
+                    "question": "1 + 5 = ?",
+                    "answer": 6,
+                    "options": [1, 6, 8, 16]
+                },
+                {
+                    "type": "addition",
+                    "question": "9 + 4 = ?",
+                    "answer": 13,
+                    "options": [15, 22, 5, 13]
+                },
+                {
+                    "type": "addition",
+                    "question": "6 + 9 = ?",
+                    "answer": 15,
+                    "options": [6, 15, 20, 8]
+                },
+                {
+                    "type": "addition",
+                    "question": "3 + 2 = ?",
+                    "answer": 5,
+                    "options": [3, 2, 5, 1]
+                },
+                {
+                    "type": "addition",
+                    "question": "7 + 3 = ?",
+                    "answer": 10,
+                    "options": [11, 1, 10, 3]
+                },
+                {
+                    "type": "addition",
+                    "question": "9 + 7 = ?",
+                    "answer": 16,
+                    "options": [16, 17, 18, 12]
+                },
+                {
+                    "type": "addition",
+                    "question": "8 + 2 = ?",
+                    "answer": 10,
+                    "options": [8, 1, 15, 10]
+                }
+            ],
+            "game_config": {
+                "time_limit": 300,
+                "pass_score": 70,
+                "hints": 3,
+                "lives": 3
+            }
+        };
+
+        // 游戏状态
+        let gameState = {
+            currentQuestion: 0,
+            score: 0,
+            lives: 3,
+            hints: 3,
+            timeRemaining: 300,
+            gameActive: true,
+            timer: null
+        };
+
+        // 初始化游戏
+        function initGame() {
+            gameState.currentQuestion = 0;
+            gameState.score = 0;
+            gameState.lives = gameData.game_config.lives;
+            gameState.hints = gameData.game_config.hints;
+            gameState.timeRemaining = gameData.game_config.time_limit;
+            gameState.gameActive = true;
+            
+            updateDisplay();
+            loadQuestion();
+            startTimer();
+            
+            document.getElementById('gameContent').style.display = 'block';
+            document.getElementById('gameOver').style.display = 'none';
+        }
+
+        // 加载题目
+        function loadQuestion() {
+            if (gameState.currentQuestion >= gameData.problems.length) {
+                endGame();
+                return;
+            }
+
+            const problem = gameData.problems[gameState.currentQuestion];
+            document.getElementById('question').textContent = problem.question;
+            
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+            
+            problem.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option);
+                optionsGrid.appendChild(button);
+            });
+            
+            updateProgress();
+        }
+
+        // 检查答案
+        function checkAnswer(selectedAnswer) {
+            if (!gameState.gameActive) return;
+            
+            const problem = gameData.problems[gameState.currentQuestion];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (parseInt(btn.textContent) === problem.answer) {
+                    btn.classList.add('correct');
+                } else if (parseInt(btn.textContent) === selectedAnswer) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            if (selectedAnswer === problem.answer) {
+                gameState.score += 10;
+                showFeedback('🎉 正确！', 'success');
+            } else {
+                gameState.lives--;
+                showFeedback(`❌ 错误！正确答案是 ${problem.answer}`, 'error');
+            }
+            
+            updateDisplay();
+            
+            setTimeout(() => {
+                if (gameState.lives <= 0) {
+                    endGame();
+                } else {
+                    gameState.currentQuestion++;
+                    loadQuestion();
+                }
+            }, 1500);
+        }
+
+        // 使用提示
+        function useHint() {
+            if (gameState.hints <= 0 || !gameState.gameActive) return;
+            
+            gameState.hints--;
+            const problem = gameData.problems[gameState.currentQuestion];
+            const correctAnswer = problem.answer;
+            
+            const hints = [
+                `💡 提示: 答案在 ${correctAnswer-5} 到 ${correctAnswer+5} 之间`,
+                `💡 提示: 正确答案是 ${correctAnswer} 位数`,
+                `💡 提示: 答案是 ${correctAnswer % 2 === 0 ? '偶数' : '奇数'}`,
+                `💡 提示: 答案比 ${correctAnswer-3} 大`
+            ];
+            
+            const hint = hints[Math.floor(Math.random() * hints.length)];
+            document.getElementById('hintDisplay').textContent = hint;
+            document.getElementById('hintDisplay').style.display = 'block';
+            
+            updateDisplay();
+        }
+
+        // 显示反馈
+        function showFeedback(message, type) {
+            const feedbackDiv = document.getElementById('hintDisplay');
+            feedbackDiv.textContent = message;
+            feedbackDiv.style.display = 'block';
+            feedbackDiv.style.background = type === 'success' ? '#d4edda' : '#f8d7da';
+            feedbackDiv.style.borderColor = type === 'success' ? '#c3e6cb' : '#f5c6cb';
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('lives').innerHTML = '❤️'.repeat(gameState.lives);
+            document.getElementById('hintCount').textContent = gameState.hints;
+            document.getElementById('hintBtn').disabled = gameState.hints <= 0;
+        }
+
+        // 更新进度条
+        function updateProgress() {
+            const progress = (gameState.currentQuestion / gameData.problems.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // 开始计时器
+        function startTimer() {
+            gameState.timer = setInterval(() => {
+                gameState.timeRemaining--;
+                updateTimer();
+                
+                if (gameState.timeRemaining <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // 更新计时器显示
+        function updateTimer() {
+            const minutes = Math.floor(gameState.timeRemaining / 60);
+            const seconds = gameState.timeRemaining % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameState.gameActive = false;
+            clearInterval(gameState.timer);
+            
+            const passScore = gameData.game_config.pass_score;
+            const totalScore = gameData.problems.length * 10;
+            const accuracy = (gameState.score / totalScore * 100).toFixed(1);
+            
+            document.getElementById('gameContent').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'block';
+            
+            document.getElementById('finalScore').textContent = 
+                `最终得分: ${gameState.score}/${totalScore} (${accuracy}%)`;
+            
+            if (gameState.score >= passScore) {
+                document.getElementById('gameOverTitle').textContent = '🎉 恭喜通关！';
+                document.getElementById('gameOverMessage').textContent = 
+                    '你真棒！继续保持这个好成绩！';
+            } else {
+                document.getElementById('gameOverTitle').textContent = '💪 继续努力！';
+                document.getElementById('gameOverMessage').textContent = 
+                    '这次没有通关，下次一定能成功！';
+            }
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            initGame();
+        }
+
+        // 页面加载完成后初始化游戏
+        window.onload = function() {
+            initGame();
+        };
+    </script>
+</body>
+</html>

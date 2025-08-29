@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import sys
+import json
 from dotenv import load_dotenv
 
 # 添加项目根目录到Python路径
@@ -106,16 +107,21 @@ def main():
                                 st.write(f"选项: {', '.join(map(str, sample_problem['options']))}")
                                 st.write(f"正确答案: {sample_problem['answer']}")
                         
-                        # 提供下载选项
-                        game_json = json.dumps(game_data, ensure_ascii=False, indent=2)
-                        st.download_button(
-                            label="下载游戏数据",
-                            data=game_json,
-                            file_name=f"{game_title}.json",
-                            mime="application/json"
-                        )
+                        # 存储游戏数据供下载
+                        st.session_state.current_math_game = game_data
+                        st.session_state.current_math_game_title = game_title
                 else:
                     st.warning("请输入游戏标题")
+        
+        # 在表单外显示下载按钮
+        if 'current_math_game' in st.session_state and st.session_state.current_math_game:
+            game_json = json.dumps(st.session_state.current_math_game, ensure_ascii=False, indent=2)
+            st.download_button(
+                label="下载游戏数据",
+                data=game_json,
+                file_name=f"{st.session_state.current_math_game_title}.json",
+                mime="application/json"
+            )
     
     elif game_type == "汉字游戏":
         st.subheader("📝 汉字游戏开发")
@@ -156,16 +162,21 @@ def main():
                                 if 'meaning' in sample_question:
                                     st.write(f"含义: {sample_question['meaning']}")
                         
-                        # 提供下载选项
-                        game_json = json.dumps(game_data, ensure_ascii=False, indent=2)
-                        st.download_button(
-                            label="下载游戏数据",
-                            data=game_json,
-                            file_name=f"{game_title}.json",
-                            mime="application/json"
-                        )
+                        # 存储游戏数据供下载
+                        st.session_state.current_chinese_game = game_data
+                        st.session_state.current_chinese_game_title = game_title
                 else:
                     st.warning("请输入游戏标题")
+            
+            # 在表单外显示下载按钮
+        if 'current_chinese_game' in st.session_state and st.session_state.current_chinese_game:
+            game_json = json.dumps(st.session_state.current_chinese_game, ensure_ascii=False, indent=2)
+            st.download_button(
+                label="下载游戏数据",
+                data=game_json,
+                file_name=f"{st.session_state.current_chinese_game_title}.json",
+                mime="application/json"
+            )
     
     elif game_type == "英语游戏":
         st.subheader("🔤 英语游戏开发")
@@ -208,16 +219,21 @@ def main():
                                 if 'explanation' in sample_question:
                                     st.write(f"解释: {sample_question['explanation']}")
                         
-                        # 提供下载选项
-                        game_json = json.dumps(game_data, ensure_ascii=False, indent=2)
-                        st.download_button(
-                            label="下载游戏数据",
-                            data=game_json,
-                            file_name=f"{game_title}.json",
-                            mime="application/json"
-                        )
+                        # 存储游戏数据供下载
+                        st.session_state.current_english_game = game_data
+                        st.session_state.current_english_game_title = game_title
                 else:
                     st.warning("请输入游戏标题")
+            
+            # 在表单外显示下载按钮
+        if 'current_english_game' in st.session_state and st.session_state.current_english_game:
+            game_json = json.dumps(st.session_state.current_english_game, ensure_ascii=False, indent=2)
+            st.download_button(
+                label="下载游戏数据",
+                data=game_json,
+                file_name=f"{st.session_state.current_english_game_title}.json",
+                mime="application/json"
+            )
     
     elif game_type == "自定义游戏场景":
         st.subheader("🎨 自定义游戏场景")
@@ -246,16 +262,21 @@ def main():
                         with st.expander("场景详情"):
                             st.markdown(scene_generator.generate_scene_instructions(scene_data))
                         
-                        # 提供下载选项
-                        scene_json = json.dumps(scene_data, ensure_ascii=False, indent=2)
-                        st.download_button(
-                            label="下载场景数据",
-                            data=scene_json,
-                            file_name=f"{game_title}_scene.json",
-                            mime="application/json"
-                        )
+                        # 存储场景数据供下载
+                        st.session_state.current_scene = scene_data
+                        st.session_state.current_scene_title = game_title
                 else:
                     st.warning("请填写游戏标题和描述")
+            
+            # 在表单外显示下载按钮
+        if 'current_scene' in st.session_state and st.session_state.current_scene:
+            scene_json = json.dumps(st.session_state.current_scene, ensure_ascii=False, indent=2)
+            st.download_button(
+                label="下载场景数据",
+                data=scene_json,
+                file_name=f"{st.session_state.current_scene_title}_scene.json",
+                mime="application/json"
+            )
 
 if __name__ == "__main__":
     main()
