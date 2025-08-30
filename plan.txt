@@ -10,3 +10,6 @@
 - openai 支持 OPENAI_API_KEY OPENAI_BASE_URL OPENAI_MODEL 参数
 - Claude 支持 ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN 参数
 - 设置 git 忽略pyc等中间编译文件
+- 直接生成游戏代码
+- 可以运行调试
+- 生成mac和ios 游戏

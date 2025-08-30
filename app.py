@@ -15,6 +15,8 @@ from games.math_game import MathGameGenerator
 from games.chinese_game import ChineseGameGenerator
 from games.english_game import EnglishGameGenerator
 from games.scene_generator import GameSceneGenerator
+from game_code_generator import GameCodeGenerator
+from mobile_game_generator import MobileGameGenerator
 
 # 加载环境变量
 load_dotenv()
@@ -29,6 +31,8 @@ math_game_generator = MathGameGenerator()
 chinese_game_generator = ChineseGameGenerator()
 english_game_generator = EnglishGameGenerator()
 scene_generator = GameSceneGenerator()
+game_code_generator = GameCodeGenerator()
+mobile_game_generator = MobileGameGenerator()
 
 def main():
     """主应用函数"""
@@ -55,6 +59,12 @@ def main():
         game_type = st.selectbox(
             "选择游戏类型",
             ["数字游戏", "汉字游戏", "英语游戏", "自定义游戏场景"]
+        )
+        
+        st.header("平台选择")
+        platform = st.selectbox(
+            "选择目标平台",
+            ["Web", "macOS", "iOS", "All Platforms"]
         )
         
         st.header("游戏设置")
@@ -110,6 +120,21 @@ def main():
                         # 存储游戏数据供下载
                         st.session_state.current_math_game = game_data
                         st.session_state.current_math_game_title = game_title
+                        
+                        # 生成游戏代码
+                        game_code = game_code_generator.generate_math_game_code(game_data)
+                        st.session_state.current_math_game_code = game_code
+                        
+                        # 生成移动端游戏代码
+                        if platform in ["macOS", "iOS", "All Platforms"]:
+                            mobile_games = {}
+                            if platform in ["macOS", "All Platforms"]:
+                                macos_game = mobile_game_generator.generate_macos_game_code(game_data, "math")
+                                mobile_games["macOS"] = macos_game
+                            if platform in ["iOS", "All Platforms"]:
+                                ios_game = mobile_game_generator.generate_ios_game_code(game_data, "math")
+                                mobile_games["iOS"] = ios_game
+                            st.session_state.current_math_mobile_games = mobile_games
                 else:
                     st.warning("请输入游戏标题")
         
@@ -122,6 +147,86 @@ def main():
                 file_name=f"{st.session_state.current_math_game_title}.json",
                 mime="application/json"
             )
+            
+            # 显示游戏代码下载和运行按钮
+            if 'current_math_game_code' in st.session_state:
+                st.subheader("🚀 运行游戏")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    # 下载游戏代码
+                    st.download_button(
+                        label="下载游戏代码",
+                        data=st.session_state.current_math_game_code,
+                        file_name=f"{st.session_state.current_math_game_title}_game.py",
+                        mime="text/plain"
+                    )
+                
+                with col2:
+                    # 运行游戏按钮
+                    if st.button("🎮 运行游戏"):
+                        temp_file = game_code_generator.run_game(st.session_state.current_math_game_code, "math")
+                        if temp_file:
+                            st.success(f"游戏正在运行中！请访问 http://localhost:8502")
+                            st.info(f"游戏文件已保存到: {temp_file}")
+                        else:
+                            st.error("游戏启动失败，请检查控制台输出")
+                
+                # 显示代码预览
+                with st.expander("查看游戏代码"):
+                    st.code(st.session_state.current_math_game_code, language='python')
+                
+                # 显示移动端游戏代码
+                if 'current_math_mobile_games' in st.session_state:
+                    st.subheader("📱 移动端游戏")
+                    
+                    if "macOS" in st.session_state.current_math_mobile_games:
+                        st.markdown("#### 🖥️ macOS Game")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                label="下载macOS游戏代码",
+                                data=st.session_state.current_math_mobile_games["macOS"],
+                                file_name=f"{st.session_state.current_math_game_title}_macos_game.py",
+                                mime="text/plain"
+                            )
+                        with col2:
+                            if st.button("🖥️ 运行macOS游戏"):
+                                temp_file = mobile_game_generator.generate_mobile_game(
+                                    st.session_state.current_math_game, "math", "macos"
+                                )
+                                if temp_file:
+                                    st.success(f"macOS游戏文件已保存到: {temp_file}")
+                                    st.info("运行命令: python3 " + temp_file)
+                                else:
+                                    st.error("macOS游戏生成失败")
+                        
+                        with st.expander("查看macOS游戏代码"):
+                            st.code(st.session_state.current_math_mobile_games["macOS"], language='python')
+                    
+                    if "iOS" in st.session_state.current_math_mobile_games:
+                        st.markdown("#### 📱 iOS Game")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                label="下载iOS游戏代码",
+                                data=st.session_state.current_math_mobile_games["iOS"],
+                                file_name=f"{st.session_state.current_math_game_title}_ios_game.py",
+                                mime="text/plain"
+                            )
+                        with col2:
+                            if st.button("📱 运行iOS游戏"):
+                                temp_file = mobile_game_generator.generate_mobile_game(
+                                    st.session_state.current_math_game, "math", "ios"
+                                )
+                                if temp_file:
+                                    st.success(f"iOS游戏文件已保存到: {temp_file}")
+                                    st.info("运行命令: python3 " + temp_file)
+                                else:
+                                    st.error("iOS游戏生成失败")
+                        
+                        with st.expander("查看iOS游戏代码"):
+                            st.code(st.session_state.current_math_mobile_games["iOS"], language='python')
     
     elif game_type == "汉字游戏":
         st.subheader("📝 汉字游戏开发")
@@ -165,6 +270,21 @@ def main():
                         # 存储游戏数据供下载
                         st.session_state.current_chinese_game = game_data
                         st.session_state.current_chinese_game_title = game_title
+                        
+                        # 生成游戏代码
+                        game_code = game_code_generator.generate_chinese_game_code(game_data)
+                        st.session_state.current_chinese_game_code = game_code
+                        
+                        # 生成移动端游戏代码
+                        if platform in ["macOS", "iOS", "All Platforms"]:
+                            mobile_games = {}
+                            if platform in ["macOS", "All Platforms"]:
+                                macos_game = mobile_game_generator.generate_macos_game_code(game_data, "chinese")
+                                mobile_games["macOS"] = macos_game
+                            if platform in ["iOS", "All Platforms"]:
+                                ios_game = mobile_game_generator.generate_ios_game_code(game_data, "chinese")
+                                mobile_games["iOS"] = ios_game
+                            st.session_state.current_chinese_mobile_games = mobile_games
                 else:
                     st.warning("请输入游戏标题")
             
@@ -177,6 +297,86 @@ def main():
                 file_name=f"{st.session_state.current_chinese_game_title}.json",
                 mime="application/json"
             )
+            
+            # 显示游戏代码下载和运行按钮
+            if 'current_chinese_game_code' in st.session_state:
+                st.subheader("🚀 运行游戏")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    # 下载游戏代码
+                    st.download_button(
+                        label="下载游戏代码",
+                        data=st.session_state.current_chinese_game_code,
+                        file_name=f"{st.session_state.current_chinese_game_title}_game.py",
+                        mime="text/plain"
+                    )
+                
+                with col2:
+                    # 运行游戏按钮
+                    if st.button("🎮 运行游戏"):
+                        temp_file = game_code_generator.run_game(st.session_state.current_chinese_game_code, "chinese")
+                        if temp_file:
+                            st.success(f"游戏正在运行中！请访问 http://localhost:8502")
+                            st.info(f"游戏文件已保存到: {temp_file}")
+                        else:
+                            st.error("游戏启动失败，请检查控制台输出")
+                
+                # 显示代码预览
+                with st.expander("查看游戏代码"):
+                    st.code(st.session_state.current_chinese_game_code, language='python')
+                
+                # 显示移动端游戏代码
+                if 'current_chinese_mobile_games' in st.session_state:
+                    st.subheader("📱 移动端游戏")
+                    
+                    if "macOS" in st.session_state.current_chinese_mobile_games:
+                        st.markdown("#### 🖥️ macOS Game")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                label="下载macOS游戏代码",
+                                data=st.session_state.current_chinese_mobile_games["macOS"],
+                                file_name=f"{st.session_state.current_chinese_game_title}_macos_game.py",
+                                mime="text/plain"
+                            )
+                        with col2:
+                            if st.button("🖥️ 运行macOS游戏", key="chinese_macos"):
+                                temp_file = mobile_game_generator.generate_mobile_game(
+                                    st.session_state.current_chinese_game, "chinese", "macos"
+                                )
+                                if temp_file:
+                                    st.success(f"macOS游戏文件已保存到: {temp_file}")
+                                    st.info("运行命令: python3 " + temp_file)
+                                else:
+                                    st.error("macOS游戏生成失败")
+                        
+                        with st.expander("查看macOS游戏代码"):
+                            st.code(st.session_state.current_chinese_mobile_games["macOS"], language='python')
+                    
+                    if "iOS" in st.session_state.current_chinese_mobile_games:
+                        st.markdown("#### 📱 iOS Game")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                label="下载iOS游戏代码",
+                                data=st.session_state.current_chinese_mobile_games["iOS"],
+                                file_name=f"{st.session_state.current_chinese_game_title}_ios_game.py",
+                                mime="text/plain"
+                            )
+                        with col2:
+                            if st.button("📱 运行iOS游戏", key="chinese_ios"):
+                                temp_file = mobile_game_generator.generate_mobile_game(
+                                    st.session_state.current_chinese_game, "chinese", "ios"
+                                )
+                                if temp_file:
+                                    st.success(f"iOS游戏文件已保存到: {temp_file}")
+                                    st.info("运行命令: python3 " + temp_file)
+                                else:
+                                    st.error("iOS游戏生成失败")
+                        
+                        with st.expander("查看iOS游戏代码"):
+                            st.code(st.session_state.current_chinese_mobile_games["iOS"], language='python')
     
     elif game_type == "英语游戏":
         st.subheader("🔤 英语游戏开发")
@@ -222,6 +422,21 @@ def main():
                         # 存储游戏数据供下载
                         st.session_state.current_english_game = game_data
                         st.session_state.current_english_game_title = game_title
+                        
+                        # 生成游戏代码
+                        game_code = game_code_generator.generate_english_game_code(game_data)
+                        st.session_state.current_english_game_code = game_code
+                        
+                        # 生成移动端游戏代码
+                        if platform in ["macOS", "iOS", "All Platforms"]:
+                            mobile_games = {}
+                            if platform in ["macOS", "All Platforms"]:
+                                macos_game = mobile_game_generator.generate_macos_game_code(game_data, "english")
+                                mobile_games["macOS"] = macos_game
+                            if platform in ["iOS", "All Platforms"]:
+                                ios_game = mobile_game_generator.generate_ios_game_code(game_data, "english")
+                                mobile_games["iOS"] = ios_game
+                            st.session_state.current_english_mobile_games = mobile_games
                 else:
                     st.warning("请输入游戏标题")
             
@@ -234,6 +449,86 @@ def main():
                 file_name=f"{st.session_state.current_english_game_title}.json",
                 mime="application/json"
             )
+            
+            # 显示游戏代码下载和运行按钮
+            if 'current_english_game_code' in st.session_state:
+                st.subheader("🚀 运行游戏")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    # 下载游戏代码
+                    st.download_button(
+                        label="下载游戏代码",
+                        data=st.session_state.current_english_game_code,
+                        file_name=f"{st.session_state.current_english_game_title}_game.py",
+                        mime="text/plain"
+                    )
+                
+                with col2:
+                    # 运行游戏按钮
+                    if st.button("🎮 运行游戏"):
+                        temp_file = game_code_generator.run_game(st.session_state.current_english_game_code, "english")
+                        if temp_file:
+                            st.success(f"游戏正在运行中！请访问 http://localhost:8502")
+                            st.info(f"游戏文件已保存到: {temp_file}")
+                        else:
+                            st.error("游戏启动失败，请检查控制台输出")
+                
+                # 显示代码预览
+                with st.expander("查看游戏代码"):
+                    st.code(st.session_state.current_english_game_code, language='python')
+                
+                # 显示移动端游戏代码
+                if 'current_english_mobile_games' in st.session_state:
+                    st.subheader("📱 移动端游戏")
+                    
+                    if "macOS" in st.session_state.current_english_mobile_games:
+                        st.markdown("#### 🖥️ macOS Game")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                label="下载macOS游戏代码",
+                                data=st.session_state.current_english_mobile_games["macOS"],
+                                file_name=f"{st.session_state.current_english_game_title}_macos_game.py",
+                                mime="text/plain"
+                            )
+                        with col2:
+                            if st.button("🖥️ 运行macOS游戏", key="english_macos"):
+                                temp_file = mobile_game_generator.generate_mobile_game(
+                                    st.session_state.current_english_game, "english", "macos"
+                                )
+                                if temp_file:
+                                    st.success(f"macOS游戏文件已保存到: {temp_file}")
+                                    st.info("运行命令: python3 " + temp_file)
+                                else:
+                                    st.error("macOS游戏生成失败")
+                        
+                        with st.expander("查看macOS游戏代码"):
+                            st.code(st.session_state.current_english_mobile_games["macOS"], language='python')
+                    
+                    if "iOS" in st.session_state.current_english_mobile_games:
+                        st.markdown("#### 📱 iOS Game")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                label="下载iOS游戏代码",
+                                data=st.session_state.current_english_mobile_games["iOS"],
+                                file_name=f"{st.session_state.current_english_game_title}_ios_game.py",
+                                mime="text/plain"
+                            )
+                        with col2:
+                            if st.button("📱 运行iOS游戏", key="english_ios"):
+                                temp_file = mobile_game_generator.generate_mobile_game(
+                                    st.session_state.current_english_game, "english", "ios"
+                                )
+                                if temp_file:
+                                    st.success(f"iOS游戏文件已保存到: {temp_file}")
+                                    st.info("运行命令: python3 " + temp_file)
+                                else:
+                                    st.error("iOS游戏生成失败")
+                        
+                        with st.expander("查看iOS游戏代码"):
+                            st.code(st.session_state.current_english_mobile_games["iOS"], language='python')
     
     elif game_type == "自定义游戏场景":
         st.subheader("🎨 自定义游戏场景")
@@ -265,6 +560,21 @@ def main():
                         # 存储场景数据供下载
                         st.session_state.current_scene = scene_data
                         st.session_state.current_scene_title = game_title
+                        
+                        # 生成游戏代码
+                        game_code = game_code_generator.generate_scene_game_code(scene_data)
+                        st.session_state.current_scene_code = game_code
+                        
+                        # 生成移动端游戏代码
+                        if platform in ["macOS", "iOS", "All Platforms"]:
+                            mobile_games = {}
+                            if platform in ["macOS", "All Platforms"]:
+                                macos_game = mobile_game_generator.generate_macos_game_code(scene_data, "scene")
+                                mobile_games["macOS"] = macos_game
+                            if platform in ["iOS", "All Platforms"]:
+                                ios_game = mobile_game_generator.generate_ios_game_code(scene_data, "scene")
+                                mobile_games["iOS"] = ios_game
+                            st.session_state.current_scene_mobile_games = mobile_games
                 else:
                     st.warning("请填写游戏标题和描述")
             
@@ -277,6 +587,86 @@ def main():
                 file_name=f"{st.session_state.current_scene_title}_scene.json",
                 mime="application/json"
             )
+            
+            # 显示游戏代码下载和运行按钮
+            if 'current_scene_code' in st.session_state:
+                st.subheader("🚀 运行游戏")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    # 下载游戏代码
+                    st.download_button(
+                        label="下载游戏代码",
+                        data=st.session_state.current_scene_code,
+                        file_name=f"{st.session_state.current_scene_title}_game.py",
+                        mime="text/plain"
+                    )
+                
+                with col2:
+                    # 运行游戏按钮
+                    if st.button("🎮 运行游戏"):
+                        temp_file = game_code_generator.run_game(st.session_state.current_scene_code, "scene")
+                        if temp_file:
+                            st.success(f"游戏正在运行中！请访问 http://localhost:8502")
+                            st.info(f"游戏文件已保存到: {temp_file}")
+                        else:
+                            st.error("游戏启动失败，请检查控制台输出")
+                
+                # 显示代码预览
+                with st.expander("查看游戏代码"):
+                    st.code(st.session_state.current_scene_code, language='python')
+                
+                # 显示移动端游戏代码
+                if 'current_scene_mobile_games' in st.session_state:
+                    st.subheader("📱 移动端游戏")
+                    
+                    if "macOS" in st.session_state.current_scene_mobile_games:
+                        st.markdown("#### 🖥️ macOS Game")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                label="下载macOS游戏代码",
+                                data=st.session_state.current_scene_mobile_games["macOS"],
+                                file_name=f"{st.session_state.current_scene_title}_macos_game.py",
+                                mime="text/plain"
+                            )
+                        with col2:
+                            if st.button("🖥️ 运行macOS游戏", key="scene_macos"):
+                                temp_file = mobile_game_generator.generate_mobile_game(
+                                    st.session_state.current_scene, "scene", "macos"
+                                )
+                                if temp_file:
+                                    st.success(f"macOS游戏文件已保存到: {temp_file}")
+                                    st.info("运行命令: python3 " + temp_file)
+                                else:
+                                    st.error("macOS游戏生成失败")
+                        
+                        with st.expander("查看macOS游戏代码"):
+                            st.code(st.session_state.current_scene_mobile_games["macOS"], language='python')
+                    
+                    if "iOS" in st.session_state.current_scene_mobile_games:
+                        st.markdown("#### 📱 iOS Game")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                label="下载iOS游戏代码",
+                                data=st.session_state.current_scene_mobile_games["iOS"],
+                                file_name=f"{st.session_state.current_scene_title}_ios_game.py",
+                                mime="text/plain"
+                            )
+                        with col2:
+                            if st.button("📱 运行iOS游戏", key="scene_ios"):
+                                temp_file = mobile_game_generator.generate_mobile_game(
+                                    st.session_state.current_scene, "scene", "ios"
+                                )
+                                if temp_file:
+                                    st.success(f"iOS游戏文件已保存到: {temp_file}")
+                                    st.info("运行命令: python3 " + temp_file)
+                                else:
+                                    st.error("iOS游戏生成失败")
+                        
+                        with st.expander("查看iOS游戏代码"):
+                            st.code(st.session_state.current_scene_mobile_games["iOS"], language='python')
 
 if __name__ == "__main__":
     main()
